@@ -31,6 +31,5 @@ Match Group sftpgroup
  then to add the user to the group type (sudo usermod -aG sftpgroup example)
  lastly you want to  type (sudo service ssh restart again) then restart the system now now your done
  
- # This is my first write up on Github so any critism is welcome
- # Wanted to make this because I never document what I do, this will make my life easier when doing doing my setups again
- #Also isn't Spell  Checked and order is a little chanky but with will work for now
+# Wanted to make this because I never document what I do, this will make my life easier when doing doing my setups again
+ #Also isn't Spell Checked and order is a little chanky but with will work for now
