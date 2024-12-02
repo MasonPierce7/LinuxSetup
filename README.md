@@ -1,130 +1,113 @@
-# Setting Up a Linux Server
+# Linux Server Setup Guide
 
-When starting the setup for a Linux machine, you have many options for distros. However, for server use, I recommend using a **Command Line Interface (CLI)** with either **Ubuntu Server LTS** or **Debian 12**. If given the option, do not install a Desktop Environment (GUI), as it can significantly impact server performance. However, this is optional.
+This guide walks you through the steps to set up a Linux machine for server use. It provides recommendations for distributions, security practices, and additional tools to streamline your server management.
 
-## Creating Bootable Media
-- For creating bootable USB drives, I recommend:
-  - [Balena Etcher](https://www.balena.io/etcher)
-  - [Rufus](https://rufus.ie) (if Etcher doesn’t work).
-- If using a Type-1 or bare-metal hypervisor (e.g., Proxmox or ESXi), download the ISO/TAR.ZST files and upload them to your hypervisor's local storage.
+## Table of Contents
+1. Choosing a Distribution
+2. Initial Setup
+3. User Management
+4. SSH Configuration
+5. Optional: SFTP Setup
+6. Notes
 
----
+## Choosing a Distribution
+For server use, I recommend:
+- **Ubuntu Server LTS**
+- **Debian 12**
 
-## Initial Setup Steps
-1. **Secure Root Password**
-   - Follow [NIST 800-63B](https://pages.nist.gov/800-63-3/sp800-63b.html) guidelines: 
-     - Passwords should be at least 8 characters long.
-     - Include ASCII characters for additional complexity.
+Avoid installing a Desktop Environment (GUI) as it can significantly impact server performance. For creating bootable USB drives, use:
+- [Balena Etcher](https://www.balena.io/etcher)
+- [Rufus](https://rufus.ie/)
 
-2. **Set Static IP**
-   - Configure during setup or reserve the IP address in your router to ensure consistent network access.
+If using a hypervisor like **Proxmox** or **ESXi**, upload ISO or TAR.ZST files directly into your hypervisor's storage.
 
-3. **Log In**
-   - Once setup is complete, log in using the system name:
-     ```plaintext
-     NameOfSystem login:
-     ```
-     - Use `root` or the username you created during setup.
-   - After logging in, update the system:
-     ```bash
-     sudo apt-get update && sudo apt-get upgrade
-     ```
-   - If on Debian, install `sudo`:
-     ```bash
-     apt install sudo
-     ```
+## Initial Setup
+1. **Set a Secure Root Password**  
+   Follow [NIST 800-63b](https://pages.nist.gov/800-63-3/sp800-63b.html) guidelines for strong passwords:
+   - At least 8 characters long.
+   - Include ASCII characters.
+2. **Configure Static IP**  
+   Reserve an IP address during setup or in your router's settings.
+3. **Update and Upgrade**  
+   ```bash
+   sudo apt-get update
+   sudo apt-get upgrade
+   ```
+4. **Install `sudo` (if using Debian)**  
+   ```bash
+   apt install sudo
+   ```
 
----
-
-## Creating a User with Least Privilege
-1. **Add a New User**
+## User Management
+1. **Create a New User**  
+   Replace `example` with your desired username:
    ```bash
    sudo useradd example
-Verify user creation:
-bash
-Copy code
-sudo id example
-Set a password for the new user:
-bash
-Copy code
-sudo passwd example
-Create a home directory:
-bash
-Copy code
-mkhomedir_helper example
-Add the user to the sudo group:
-bash
-Copy code
-sudo adduser example sudo
-Switch to the New User
-bash
-Copy code
-su example
-bash
-Confirm with:
-bash
-Copy code
-whoami
-Setting Up SSH
-Install OpenSSH
+   sudo passwd example
+   mkhomedir_helper example
+   sudo adduser example sudo
+   ```
+2. **Switch to the New User**  
+   ```bash
+   su example
+   bash
+   whoami
+   ```
 
-bash
-Copy code
-sudo apt install openssh-server
-Verify installation and edit the configuration:
-bash
-Copy code
-sudo cp /etc/ssh/sshd_config /etc/ssh/sshd_config.original
-sudo chmod a-w /etc/ssh/sshd_config.original
-nano /etc/ssh/sshd_config
-Recommended changes:
-Change port to 2222.
-Set PermitRootLogin to no.
-Restart SSH Service
-
-bash
-Copy code
-sudo systemctl restart sshd.service
-Generate SSH Keys
-
-bash
-Copy code
-ssh-keygen -t rsa -b 4096
-Connecting to the Server
-
-Use tools like:
-PuTTY
-Linux terminal:
-bash
-Copy code
+## SSH Configuration
+1. **Install OpenSSH Server**  
+   ```bash
+   sudo apt install openssh-server
+   ```
+2. **Backup SSH Configuration File**  
+   ```bash
+   sudo cp /etc/ssh/sshd_config /etc/ssh/sshd_config.original
+   sudo chmod a-w /etc/ssh/sshd_config.original
+   ```
+3. **Edit SSH Configuration**  
+   ```bash
+   sudo nano /etc/ssh/sshd_config
+   ```
+   - Change the port to `2222`.
+   - Set `PermitRootLogin` to `no`.
+4. **Restart SSH Service**  
+   ```bash
+   sudo systemctl restart sshd.service
+   ```
+5. **Generate SSH Keys**  
+   ```bash
+   ssh-keygen -t rsa -b 4096
+   ```
+Use [PuTTY](https://www.putty.org/) or the following Linux command to connect:
+```bash
 ssh remote_username@remote_host
-Optional: Setting Up SFTP
-SFTP allows easy file transfers via a GUI instead of using wget in the terminal.
+```
 
-Configure SFTP in SSH
+## Optional: SFTP Setup
+1. **Edit SSH Configuration**  
+   Add the following to `/etc/ssh/sshd_config`:
+   ```plaintext
+   Match Group sftpgroup
+       ChrootDirectory %h
+       PasswordAuthentication yes
+       AllowTcpForwarding no
+       X11Forwarding no
+       ForceCommand internal-sftp
+   ```
+2. **Restart SSH Service**  
+   ```bash
+   sudo systemctl restart sshd
+   ```
+3. **Create SFTP Group and Add User**  
+   ```bash
+   sudo addgroup sftpgroup
+   sudo usermod -aG sftpgroup example
+   sudo service ssh restart
+   ```
 
-Add the following to the bottom of /etc/ssh/sshd_config:
-plaintext
-Copy code
-Match Group sftpgroup
-    ChrootDirectory %h
-    PasswordAuthentication yes
-    AllowTcpForwarding no
-    X11Forwarding no
-    ForceCommand internal-sftp
-Restart the SSH service:
-bash
-Copy code
-sudo systemctl restart sshd
-Create SFTP Group and Add User
-
-bash
-Copy code
-sudo addgroup sftpgroup
-sudo usermod -aG sftpgroup example
-sudo service ssh restart
-Restart the System
- lastly you want to  type (sudo service ssh restart again) then restart the system now now your done
+## Notes
+- This guide is my first GitHub write-up. Feedback is welcome!
+- It is not spell-checked, and the order may feel slightly choppy, but it works.
 
  Feedback Welcome
  
