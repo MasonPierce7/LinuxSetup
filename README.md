@@ -112,4 +112,3 @@ ssh remote_username@remote_host
  Feedback Welcome
  
 # Wanted to make this because I never document what I do, this will make my life easier when doing doing my setups again
- #Also isn't Spell Checked and order is a little chanky but with will work for now
