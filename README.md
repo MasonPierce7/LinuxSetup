@@ -105,10 +105,6 @@ ssh remote_username@remote_host
    sudo service ssh restart
    ```
 
-## Notes
-- This guide is my first GitHub write-up. Feedback is welcome!
-- It is not spell-checked, and the order may feel slightly choppy, but it works.
-
  Feedback Welcome
  
 # Wanted to make this because I never document what I do, this will make my life easier when doing doing my setups again
